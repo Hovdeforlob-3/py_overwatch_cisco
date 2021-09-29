@@ -3,6 +3,7 @@ from pysnmp import hlapi
 import datetime
 
 
+# this function sætter oid sammen med objectType og lægger det i en []
 def construct_object_types(list_of_oids):
     object_types = []
     for oid in list_of_oids:
@@ -10,6 +11,7 @@ def construct_object_types(list_of_oids):
     return object_types
 
 
+# tjekker hvilken slakes værdi det er om det er en int, float eller en string
 def cast(value):
     try:
         return int(value)
@@ -24,6 +26,7 @@ def cast(value):
     return value
 
 
+# this function makes error handle og collected all in one collection
 def fetch(handler, count):
     result = []
     for i in range(count):
@@ -41,20 +44,20 @@ def fetch(handler, count):
     return result
 
 
+# this function gets the data with oid giving throw port 161
 def get(target, oids, credentials, port=161, engine=hlapi.SnmpEngine(), context=hlapi.ContextData()):
     handler = hlapi.getCmd(
         engine,
         credentials,
         hlapi.UdpTransportTarget((target, port)),
         context,
-        *construct_object_types(oids)
-    )
+        *construct_object_types(oids))
+
     return fetch(handler, 1)[0]
 
 
 print(get('192.168.1.1', ['1.3.6.1.2.1.1.5.0'], hlapi.CommunityData('private_cisco')))  # system name (hostname)
 
-# print(get('192.168.1.1', ['1.3.6.1.2.1.1.3.0'], hlapi.CommunityData('private_cisco')))  # outputs tick value
 # ## system up time ##
 uptime = get('192.168.1.1', ['1.3.6.1.2.1.1.3.0'], hlapi.CommunityData('private_cisco'))
 seconds = uptime["1.3.6.1.2.1.1.3.0"]/100
@@ -69,13 +72,3 @@ sys_info = get('192.168.1.1', ['1.3.6.1.2.1.1.1.0'], hlapi.CommunityData('privat
 sys_info_v = sys_info["1.3.6.1.2.1.1.1.0"].split("M3")
 print("{'1.3.6.1.2.1.1.1.0' :", sys_info_v[0], "}")
 # #################
-
-
-# ## sys tick to time ###
-# uptime = get('192.168.1.1', ['1.3.6.1.2.1.1.3.0'], hlapi.CommunityData('private_cisco'))
-# seconds = uptime["1.3.6.1.2.1.1.3.0"]/100
-# print("time :", datetime.timedelta(seconds=seconds.__round__()), "timer")
-# #######################
-
-print("")
-# snmp-server community cisco rw
